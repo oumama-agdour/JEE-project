@@ -27,9 +27,12 @@ public class main extends AppCompatActivity {
 
         topAppBar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == id.camera){
+                startActivity(new Intent(main.this, MonumentActivity.class));
+            }
+            if(item.getItemId()==id.search){
                 startActivity(new Intent(main.this, SearchActivity.class));
-            } else {
-                openCamera();
+
+
             }
             return false;
         });
@@ -38,6 +41,5 @@ public class main extends AppCompatActivity {
     }
 
 
-    private void openCamera() {
-    }
+
 }

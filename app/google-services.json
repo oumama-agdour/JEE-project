@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "111828788459",
-    "project_id": "monumentdetection1",
-    "storage_bucket": "monumentdetection1.appspot.com"
+    "project_number": "32906936369",
+    "project_id": "monuvision-bdc76",
+    "storage_bucket": "monuvision-bdc76.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:111828788459:android:81469c8640b79724d5caae",
+        "mobilesdk_app_id": "1:32906936369:android:6e6d0f08fc9dbd81575510",
         "android_client_info": {
           "package_name": "com.example.monumentdetection1"
         }
@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyC_-ZCe4MOSqyN9G4qE9ryx88bCrT6RJ8s"
+          "current_key": "AIzaSyDn47tLJ4ocoBSVcknmVHOcwyi2Lmwdr3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32906936369:android:220d6ea06bec6f65575510",
+        "android_client_info": {
+          "package_name": "com.example.monuvision"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDn47tLJ4ocoBSVcknmVHOcwyi2Lmwdr3o"
         }
       ],
       "services": {
