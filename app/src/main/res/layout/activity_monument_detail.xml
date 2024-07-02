@@ -13,15 +13,16 @@
         android:layout_height="wrap_content"
         android:queryHint="details Monument"
         />
+
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="306dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/monument_detail_name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="77dp"
             android:layout_margin="10dp"
             android:gravity="center"
             android:text="Name"
@@ -32,10 +33,10 @@
 
         <ImageView
             android:id="@+id/monument_detail_image"
-            android:layout_width="120dp"
-            android:layout_height="150dp"
-            android:layout_margin="10dp"
-            android:layout_gravity="center"/>
+            android:layout_width="283dp"
+            android:layout_height="183dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp" />
 
 
     </LinearLayout>
@@ -46,22 +47,22 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical">
+
         <TextView
             android:layout_width="match_parent"
-           android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:gravity="center"
             android:text="About"
-            android:textStyle="bold"
             android:textColor="#000"
             android:textSize="25sp"
+            android:textStyle="bold"
 
             />
 
         <TextView
             android:id="@+id/monument_detail_description"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
+            android:layout_height="201dp" />
     </LinearLayout>
 
 
