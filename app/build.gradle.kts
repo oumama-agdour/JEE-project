@@ -38,7 +38,6 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-extensions:2.2.0")
     implementation ("com.google.android.material:material:<1.5.0>")
 
-    
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -48,8 +47,8 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:21.0.0")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.0")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     implementation ("com.google.guava:guava:31.0.1-android")
 
 
@@ -59,19 +58,11 @@ dependencies {
 
     // Tensorflow lite dependencies
 
-    implementation ("org.tensorflow:tensorflow-lite:2.5.0")
+        implementation ("org.tensorflow:tensorflow-lite:2.8.0")
     implementation ("org.tensorflow:tensorflow-lite-support:0.4.0")
 
 
     implementation ("com.google.code.gson:gson:2.10.1")
 
-    // add the dependency for the Google AI client SDK for Android
-    implementation("com.google.ai.client.generativeai:generativeai:0.8.0")
-
-    // Required for one-shot operations (to use `ListenableFuture` from Guava Android)
-    implementation("com.google.guava:guava:31.0.1-android")
-
-    // Required for streaming operations (to use `Publisher` from Reactive Streams)
-    implementation("org.reactivestreams:reactive-streams:1.0.4")
 
 }

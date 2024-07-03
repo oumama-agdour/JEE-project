@@ -9,8 +9,8 @@ import android.view.View;
 import android.widget.Button;
 
 public class init extends AppCompatActivity {
-     Button signup;
-     Button signin;
+    private Button signup;
+     private Button signin;
 
     @SuppressLint("MissingInflatedId")
 
@@ -22,20 +22,9 @@ public class init extends AppCompatActivity {
         signup=findViewById(R.id.signup);
         signin=findViewById(R.id.signin);
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(init.this, Register.class));
+        signup.setOnClickListener(
+                v -> startActivity(new Intent(init.this, Register.class)));
 
-            }
-        });
-
-        signin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(init.this, MainActivity.class));
-
-            }
-        });
+        signin.setOnClickListener(v -> startActivity(new Intent(init.this, MainActivity.class)));
     }
 }

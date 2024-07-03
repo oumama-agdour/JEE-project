@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     EditText etlogin , etpassword;
     Button blogin;
-    TextView tvRegister;
+
     private static final String TAG = "MainActivity";
 
     @Override
@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
         etlogin=findViewById(R.id.email);
         etpassword=findViewById(R.id.password);
         blogin=findViewById(R.id.signin);
-        tvRegister=findViewById(R.id.toregister);
         mAuth = FirebaseAuth.getInstance();
 
 
@@ -41,14 +40,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 signIn(etlogin.getText().toString(), etpassword.getText().toString());
-            }
-        });
-        // traitement
-        tvRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, Register.class));
-
             }
         });
     }
