@@ -10,5 +10,11 @@
         android:icon="@drawable/outline_add_a_photo_24"
         android:contentDescription="content_description_favorite"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/search"
+        android:title="Search"
+        android:icon="@drawable/ic_search"
+        android:contentDescription="content_description_favorite"
+        app:showAsAction="ifRoom" />
 
 </menu>
