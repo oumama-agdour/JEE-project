@@ -2,6 +2,7 @@ package com.example.monumentdetection1;
 import com.example.monumentdetection1.R.id;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -34,8 +35,9 @@ public class main extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
         topAppBar = findViewById(id.topAppBar);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         monumentAdapter = new MonumentAdapter(monumentList, this);
-
         recyclerView.setAdapter(monumentAdapter);
         FirebaseApp.initializeApp(this);
         db = FirebaseFirestore.getInstance();
