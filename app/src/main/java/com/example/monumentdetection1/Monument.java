@@ -1,6 +1,5 @@
 package com.example.monumentdetection1;
 
-import com.google.gson.annotations.SerializedName;
 
 public class Monument {
     private String description;

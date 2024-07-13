@@ -47,7 +47,7 @@ public class main extends AppCompatActivity {
         // Gestion des clics sur les éléments de menu
 
         topAppBar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == id.camera){
+            if (item.getItemId() == id.nameTextView){
                 startActivity(new Intent(main.this, CameraActivity.class));
             }
             return false;

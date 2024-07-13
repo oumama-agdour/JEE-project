@@ -1,92 +1,212 @@
 package com.example.monumentdetection1;
-
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.Tensor;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RecognitionActivity extends AppCompatActivity {
-    private static final String TAG = RecognitionActivity.class.getSimpleName();
-    private Interpreter tflite;
-    private TextView tvResult;
+
+    private static final int CAMERA_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_CODE = 101;
+
+    private Interpreter interpreter;
+    private TextView textViewResult;
+    private Map<String, String> landmarks;
+    private ImageView imageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recognition);
 
-        tvResult = findViewById(R.id.tvResult);
+        textViewResult = findViewById(R.id.textViewResult);
+        imageView = findViewById(R.id.imageView);
 
-        String imagePath = getIntent().getStringExtra("imagePath");
+        Button buttonCapture = findViewById(R.id.buttonCapture);
+        buttonCapture.setOnClickListener(view -> captureImage());
 
-        // Initialize TensorFlow Lite interpreter
-        try {
-            tflite = new Interpreter(loadModelFile());
-        } catch (IOException e) {
-            Log.e(TAG, "Error loading TensorFlow Lite model: " + e.getMessage());
-            e.printStackTrace();
-        }
+        loadLandmarks();
+        initializeInterpreter();
 
-        if (imagePath != null) {
-            recognizeImage(imagePath);
-        } else {
-            Toast.makeText(this, "No image path provided", Toast.LENGTH_SHORT).show();
+        // Request camera permission if not granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_REQUEST_CODE);
         }
     }
 
-    private void recognizeImage(String imagePath) {
-        if (tflite == null) {
-            Toast.makeText(this, "TensorFlow Lite model is not initialized", Toast.LENGTH_SHORT).show();
+    private void captureImage() {
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(cameraIntent, CAMERA_CAPTURE_CODE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAMERA_CAPTURE_CODE && resultCode == RESULT_OK) {
+            if (data != null && data.getExtras() != null) {
+                Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+                imageView.setImageBitmap(imageBitmap);
+                recognizeImage(imageBitmap);
+            } else {
+                Log.e("RecognitionActivity", "No data received from camera");
+            }
+        }
+    }
+
+    private void loadLandmarks() {
+        landmarks = new HashMap<>();
+        try {
+            InputStream is = getAssets().open("landmarks_classifier_africa_V1_label_map.csv");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] tokens = line.split(",");
+                if (tokens.length == 2) {
+                    landmarks.put(tokens[0], tokens[1]);
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            Log.e("RecognitionActivity", "Error loading landmarks", e);
+        }
+    }
+
+    private void initializeInterpreter() {
+        try {
+            Interpreter.Options options = new Interpreter.Options();
+            interpreter = new Interpreter(loadModelFile("1.tflite"), options);
+        } catch (IOException e) {
+            Log.e("RecognitionActivity", "Error initializing interpreter", e);
+        }
+    }
+
+    private MappedByteBuffer loadModelFile(String modelPath) throws IOException {
+        AssetFileDescriptor fileDescriptor = getAssets().openFd(modelPath);
+        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+        FileChannel fileChannel = inputStream.getChannel();
+        long startOffset = fileDescriptor.getStartOffset();
+        long declaredLength = fileDescriptor.getDeclaredLength();
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+    }
+
+    private void recognizeImage(Bitmap bitmap) {
+        if (interpreter == null) {
+            Log.e("RecognitionActivity", "Interpreter is not initialized");
             return;
         }
-        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);
 
+        int modelInputSize = 321; // Assurez-vous que cela correspond à la taille attendue par le modèle
+
+        // Redimensionnez l'image à la taille attendue par le modèle
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, modelInputSize, modelInputSize, true);
+
+        // Chargez l'image redimensionnée dans un TensorImage
         TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
         tensorImage.load(resizedBitmap);
 
-        ByteBuffer byteBuffer = tensorImage.getBuffer();
-        TensorBuffer outputBuffer = TensorBuffer.createFixedSize(new int[]{1, 1001}, DataType.FLOAT32);
+        // Obtenez le ByteBuffer de l'image normalisée
+        ByteBuffer inputBuffer = tensorImage.getBuffer();
 
-        tflite.run(byteBuffer, outputBuffer.getBuffer().rewind());
+        // Assurez-vous que la taille du ByteBuffer correspond à la taille attendue
+        int inputSize = modelInputSize * modelInputSize * 3;  // Assuming RGB image
+        if (inputBuffer.capacity() != inputSize * 4) {  // 4 bytes per float
+            Log.e("RecognitionActivity", "Input buffer size does not match expected input size");
+            return;
+        }
 
-        float[] outputArray = outputBuffer.getFloatArray();
-        int maxIndex = 0;
-        float maxScore = outputArray[0];
-        for (int i = 1; i < outputArray.length; i++) {
-            if (outputArray[i] > maxScore) {
-                maxScore = outputArray[i];
+        // Normalisez les données d'entrée comme nécessaire
+        float[] normalizedInput = new float[inputSize];
+        for (int i = 0; i < inputSize; i++) {
+            normalizedInput[i] = (inputBuffer.get(i)) / 255.0f;
+        }
+
+        // Créez un ByteBuffer pour les données d'entrée normalisées
+        ByteBuffer normalizedInputBuffer = ByteBuffer.allocateDirect(inputSize * 4);  // 4 bytes per float
+        normalizedInputBuffer.order(ByteOrder.nativeOrder());
+        normalizedInputBuffer.asFloatBuffer().put(normalizedInput);
+
+        // Obtenez les détails du tenseur de sortie pour comprendre sa forme et sa taille
+        Tensor outputTensor = interpreter.getOutputTensor(0);
+        int[] outputShape = outputTensor.shape();
+        DataType outputDataType = outputTensor.dataType();
+
+        // Allouez le TensorBuffer de sortie basé sur la forme du tenseur de sortie
+        TensorBuffer outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
+
+        // Exécutez l'inférence avec les données d'entrée normalisées
+        interpreter.run(normalizedInputBuffer, outputBuffer.getBuffer());
+
+        // Traitez la sortie du modèle
+        processModelOutput(outputBuffer.getFloatArray());
+    }
+
+
+    private void processModelOutput(float[] output) {
+        // Find the index with the highest probability
+        int maxIndex = -1;
+        float maxProbability = -1;
+        for (int i = 0; i < output.length; i++) {
+            if (output[i] > maxProbability) {
+                maxProbability = output[i];
                 maxIndex = i;
             }
         }
 
-        String result = "Recognized Object ID: " + maxIndex;
-        tvResult.setText(result);
-        Log.d(TAG, result);
+        // Get the label corresponding to the highest probability
+        String recognizedLabel = String.valueOf(maxIndex);
+        String recognizedDescription = landmarks.getOrDefault(recognizedLabel, "Unknown");
+
+        // Update UI with the recognized description
+        runOnUiThread(() -> textViewResult.setText("Recognized: " + recognizedDescription));
     }
 
-    private MappedByteBuffer loadModelFile() throws IOException {
-        AssetFileDescriptor assetFileDescriptor = getAssets().openFd("mobilenet_v1_1.0_224_quant.tflite");
-        FileInputStream fileInputStream = new FileInputStream(assetFileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = fileInputStream.getChannel();
-        long startOffset = assetFileDescriptor.getStartOffset();
-        long declaredLength = assetFileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed with camera operations
+                captureImage();
+            } else {
+                // Permission denied, handle accordingly (e.g., show a message or disable functionality)
+                Log.w("RecognitionActivity", "Camera permission denied");
+            }
+        }
     }
 }

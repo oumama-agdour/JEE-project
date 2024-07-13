@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MonuVision</string>
+        <string name="image_view_description">Captured Image</string>
+
 </resources>
